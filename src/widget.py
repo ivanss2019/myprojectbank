@@ -1,4 +1,6 @@
-"""Функции для нового функционала виджета: маскировка "тип + номер"."""
+"""Функции для нового функционала виджета: маскировка "тип + номер" и даты."""
+
+from datetime import datetime
 
 from .masks import get_mask_account, get_mask_card_number
 
@@ -34,3 +36,21 @@ def mask_account_card(info: str) -> str:
     else:
         masked_number = get_mask_card_number(number)
     return f"{name} {masked_number}"
+
+
+def get_date(date_string: str) -> str:
+    """Преобразует дату из ISO-формата в формат "ДД.ММ.ГГГГ".
+
+    Пример:
+        >>> get_date("2024-03-11T02:26:18.671407")
+        '11.03.2024'
+
+    Args:
+        date_string: дата в формате ISO 8601,
+            например "2024-03-11T02:26:18.671407".
+
+    Returns:
+        Дата в формате "ДД.ММ.ГГГГ".
+    """
+    parsed_date = datetime.fromisoformat(date_string)
+    return parsed_date.strftime("%d.%m.%Y")
