@@ -1,0 +1,42 @@
+# Байт-код и кэш Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Дистрибутивы / сборка
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Виртуальные окружения
+.venv/
+venv/
+env/
+ENV/
+
+# Poetry
+.poetry-cache/
+
+# Тесты, покрытие, кэши статического анализа
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Переменные окружения
+.env
+.env.*
+
+# IDE
+.idea/
+.vscode/
+
+# Логи
+*.log
+
+# ОС
+.DS_Store
+Thumbs.db
