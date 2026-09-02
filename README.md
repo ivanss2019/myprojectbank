@@ -42,6 +42,9 @@ poetry run mypy src
 
 # тесты
 poetry run pytest
+
+# тесты с отчетом о покрытии кода
+poetry run pytest --cov=src --cov-report=term-missing
 ```
 
 ## Модуль `src.masks`
