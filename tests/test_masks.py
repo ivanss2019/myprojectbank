@@ -19,6 +19,28 @@ def test_get_mask_card_number(card_number: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "card_number, expected",
+    [
+        # Ровно 4 цифры — первый и последний блок пересекаются
+        ("1234", "1234 ** **** 1234"),
+        # Меньше 4 цифр — короткий номер карты, нестандартная длина
+        ("12", "12 ** **** 12"),
+        # Длиннее стандартных 16 цифр
+        ("12345678901234567890", "1234 56** **** 7890"),
+    ],
+)
+def test_get_mask_card_number_boundary_lengths(card_number: str, expected: str) -> None:
+    """Проверяет поведение на нестандартных длинах номера карты."""
+    assert get_mask_card_number(card_number) == expected
+
+
+def test_get_mask_card_number_empty_string() -> None:
+    """Если номер карты отсутствует (пустая строка), функция не падает
+    и возвращает шаблон с пустыми блоками вместо цифр."""
+    assert get_mask_card_number("") == " ** **** "
+
+
+@pytest.mark.parametrize(
     "account_number, expected",
     [
         ("73654108430135874305", "**4305"),
@@ -29,3 +51,24 @@ def test_get_mask_card_number(card_number: str, expected: str) -> None:
 def test_get_mask_account(account_number: str, expected: str) -> None:
     """Проверяет корректность маскировки номера счета."""
     assert get_mask_account(account_number) == expected
+
+
+@pytest.mark.parametrize(
+    "account_number, expected",
+    [
+        # Номер короче ожидаемых 4 цифр в хвосте
+        ("123", "**123"),
+        ("1", "**1"),
+    ],
+)
+def test_get_mask_account_shorter_than_expected(
+    account_number: str, expected: str
+) -> None:
+    """Проверяет поведение, когда номер счета короче 4 цифр."""
+    assert get_mask_account(account_number) == expected
+
+
+def test_get_mask_account_empty_string() -> None:
+    """Если номер счета отсутствует (пустая строка), функция не падает
+    и возвращает только маску без цифр."""
+    assert get_mask_account("") == "**"
