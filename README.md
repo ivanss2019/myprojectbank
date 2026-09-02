@@ -13,12 +13,15 @@
 │   ├── __init__.py
 │   ├── masks.py        # маскировка номеров карт и счетов
 │   ├── widget.py        # форматирование данных для отображения в виджете
-│   └── processing.py    # фильтрация и сортировка списка операций
+│   ├── processing.py    # фильтрация и сортировка списка операций
+│   └── generators.py    # генераторы для обработки транзакций и номеров карт
 └── tests/
     ├── __init__.py
+    ├── conftest.py
     ├── test_masks.py
     ├── test_widget.py
-    └── test_processing.py
+    ├── test_processing.py
+    └── test_generators.py
 ```
 
 ## Установка
@@ -97,4 +100,53 @@ poetry run pytest --cov=src --cov-report=term-missing
 ... ]
 >>> sort_by_date(operations)
 [{'id': 2, 'date': '2019-07-03T18:35:29'}, {'id': 1, 'date': '2018-06-30T02:08:58'}]
+```
+
+## Модуль `src.generators`
+
+Генераторы для поэлементной обработки списка транзакций и генерации
+номеров карт, без загрузки всего результата в память сразу.
+
+### `filter_by_currency(transactions, currency)`
+
+Генератор, поочередно выдающий транзакции, у которых код валюты
+(`operationAmount.currency.code`) совпадает с переданным.
+
+```python
+>>> from src.generators import filter_by_currency
+>>> transactions = [
+...     {"id": 1, "operationAmount": {"currency": {"code": "USD"}}},
+...     {"id": 2, "operationAmount": {"currency": {"code": "RUB"}}},
+... ]
+>>> usd_transactions = filter_by_currency(transactions, "USD")
+>>> next(usd_transactions)
+{'id': 1, 'operationAmount': {'currency': {'code': 'USD'}}}
+```
+
+### `transaction_descriptions(transactions)`
+
+Генератор, поочередно выдающий описание (`description`) каждой
+транзакции.
+
+```python
+>>> from src.generators import transaction_descriptions
+>>> transactions = [{"description": "Перевод организации"}]
+>>> descriptions = transaction_descriptions(transactions)
+>>> next(descriptions)
+'Перевод организации'
+```
+
+### `card_number_generator(start, end)`
+
+Генератор номеров банковских карт в формате `XXXX XXXX XXXX XXXX` для
+диапазона от `start` до `end` включительно. Допустимый диапазон — от 1
+(`0000 0000 0000 0001`) до 9999999999999999 (`9999 9999 9999 9999`).
+
+```python
+>>> from src.generators import card_number_generator
+>>> numbers = card_number_generator(1, 2)
+>>> next(numbers)
+'0000 0000 0000 0001'
+>>> next(numbers)
+'0000 0000 0000 0002'
 ```
