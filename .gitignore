@@ -24,7 +24,6 @@ ENV/
 .ruff_cache/
 .coverage
 .coverage.*
-htmlcov/
 
 # Переменные окружения
 .env
