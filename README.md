@@ -48,6 +48,9 @@ poetry run pytest
 
 # тесты с отчетом о покрытии кода
 poetry run pytest --cov=src --cov-report=term-missing
+
+# тесты с HTML-отчетом о покрытии кода (открыть htmlcov/index.html в браузере)
+poetry run pytest --cov=src --cov-report=html
 ```
 
 ## Модуль `src.masks`
