@@ -9,13 +9,18 @@
 .
 ├── pyproject.toml     # конфигурация Poetry, black, isort, mypy
 ├── .flake8            # конфигурация flake8
+├── .env.template       # шаблон переменных окружения (скопировать в .env)
+├── data/
+│   └── operations.json  # тестовый набор данных о транзакциях
 ├── src/
 │   ├── __init__.py
-│   ├── masks.py        # маскировка номеров карт и счетов
+│   ├── masks.py         # маскировка номеров карт и счетов
 │   ├── widget.py        # форматирование данных для отображения в виджете
 │   ├── processing.py    # фильтрация и сортировка списка операций
 │   ├── generators.py    # генераторы для обработки транзакций и номеров карт
-│   └── decorators.py    # декоратор log для логирования вызовов функций
+│   ├── decorators.py    # декоратор log для логирования вызовов функций
+│   ├── utils.py          # чтение транзакций из JSON-файла
+│   └── external_api.py   # конвертация суммы транзакции в рубли
 └── tests/
     ├── __init__.py
     ├── conftest.py
@@ -23,13 +28,23 @@
     ├── test_widget.py
     ├── test_processing.py
     ├── test_generators.py
-    └── test_decorators.py
+    ├── test_decorators.py
+    ├── test_utils.py
+    └── test_external_api.py
 ```
 
 ## Установка
 
 ```bash
 poetry install --with lint,test
+```
+
+Для работы модуля `src.external_api` (конвертация валют) нужен ключ
+Exchange Rates Data API (apilayer.com):
+
+```bash
+cp .env.template .env
+# затем укажите свой ключ в .env: API_KEY=...
 ```
 
 ## Проверка качества кода
@@ -184,4 +199,44 @@ add ok. Result: 5
 Traceback (most recent call last):
     ...
 ZeroDivisionError: division by zero
+```
+
+## Модуль `src.utils`
+
+### `read_transactions_json(file_path)`
+
+Читает список финансовых транзакций из JSON-файла (например,
+`data/operations.json`). Если файл не найден, пуст или его содержимое —
+не список, возвращает пустой список, а не исключение.
+
+```python
+>>> from src.utils import read_transactions_json
+>>> read_transactions_json("data/operations.json")
+[{'id': 441945886, 'state': 'EXECUTED', ...}, ...]
+>>> read_transactions_json("no_such_file.json")
+[]
+```
+
+## Модуль `src.external_api`
+
+### `convert_to_rub(transaction)`
+
+Возвращает сумму транзакции (`operationAmount.amount`) в рублях, тип —
+`float`. Если валюта операции — рубли, сумма только приводится к
+`float`. Если валюта — `USD` или `EUR`, для конвертации по текущему
+курсу выполняется запрос к [Exchange Rates Data
+API](https://apilayer.com/marketplace/exchangerates_data-api)
+(apilayer.com); ключ доступа берётся из переменной окружения
+`API_KEY` (см. `.env.template`).
+
+```python
+>>> from src.external_api import convert_to_rub
+>>> transaction = {
+...     "operationAmount": {
+...         "amount": "31957.58",
+...         "currency": {"name": "руб.", "code": "RUB"},
+...     }
+... }
+>>> convert_to_rub(transaction)
+31957.58
 ```
