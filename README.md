@@ -14,14 +14,16 @@
 │   ├── masks.py        # маскировка номеров карт и счетов
 │   ├── widget.py        # форматирование данных для отображения в виджете
 │   ├── processing.py    # фильтрация и сортировка списка операций
-│   └── generators.py    # генераторы для обработки транзакций и номеров карт
+│   ├── generators.py    # генераторы для обработки транзакций и номеров карт
+│   └── decorators.py    # декоратор log для логирования вызовов функций
 └── tests/
     ├── __init__.py
     ├── conftest.py
     ├── test_masks.py
     ├── test_widget.py
     ├── test_processing.py
-    └── test_generators.py
+    ├── test_generators.py
+    └── test_decorators.py
 ```
 
 ## Установка
@@ -152,4 +154,34 @@ poetry run pytest --cov=src --cov-report=html
 '0000 0000 0000 0001'
 >>> next(numbers)
 '0000 0000 0000 0002'
+```
+
+## Модуль `src.decorators`
+
+### `log(filename=None)`
+
+Декоратор, логирующий начало, конец и результат выполнения функции.
+При успехе записывает имя функции и результат; при исключении — имя
+функции, тип ошибки и входные параметры вызова, после чего пробрасывает
+исключение дальше без изменений. Если `filename` не задан, лог выводится
+в консоль; если задан — дописывается (append) в указанный файл.
+
+```python
+>>> from src.decorators import log
+>>>
+>>> @log()
+... def add(a: int, b: int) -> int:
+...     return a + b
+>>> add(2, 3)
+add started
+add ok. Result: 5
+5
+
+>>> @log(filename="mylog.txt")
+... def divide(a: int, b: int) -> float:
+...     return a / b
+>>> divide(10, 0)  # сообщение об ошибке и входных параметрах допишется в mylog.txt
+Traceback (most recent call last):
+    ...
+ZeroDivisionError: division by zero
 ```
