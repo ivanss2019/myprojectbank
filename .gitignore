@@ -28,6 +28,7 @@ ENV/
 # Переменные окружения
 .env
 .env.*
+!.env.template
 
 # IDE
 .idea/
