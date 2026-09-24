@@ -11,7 +11,9 @@
 ├── .flake8            # конфигурация flake8
 ├── .env.template       # шаблон переменных окружения (скопировать в .env)
 ├── data/
-│   └── operations.json  # тестовый набор данных о транзакциях
+│   ├── operations.json  # тестовый набор данных о транзакциях
+│   ├── transactions.csv
+│   └── transactions_excel.xlsx
 ├── logs/                # логи модулей (создаётся автоматически, .log в .gitignore)
 ├── src/
 │   ├── __init__.py
@@ -20,7 +22,7 @@
 │   ├── processing.py    # фильтрация и сортировка списка операций
 │   ├── generators.py    # генераторы для обработки транзакций и номеров карт
 │   ├── decorators.py    # декоратор log для логирования вызовов функций
-│   ├── utils.py          # чтение транзакций из JSON-файла
+│   ├── utils.py          # чтение транзакций из JSON, CSV и XLSX
 │   └── external_api.py   # конвертация суммы транзакции в рубли
 └── tests/
     ├── __init__.py
@@ -31,6 +33,7 @@
     ├── test_generators.py
     ├── test_decorators.py
     ├── test_utils.py
+    ├── test_tabular_transactions.py
     └── test_external_api.py
 ```
 
@@ -54,12 +57,12 @@ cp .env.template .env
 # статический анализ стиля
 poetry run flake8 src tests
 
-# автоформатирование
-poetry run black src tests
-poetry run isort src tests
+# проверка форматирования
+poetry run black --check src tests
+poetry run isort --check-only src tests
 
 # проверка типов
-poetry run mypy src
+poetry run mypy
 
 # тесты
 poetry run pytest
@@ -255,3 +258,40 @@ API](https://apilayer.com/marketplace/exchangerates_data-api)
 2024-03-11 10:15:03,214 - masks - INFO - Номер карты успешно замаскирован
 2024-03-11 10:15:03,215 - utils - WARNING - Файл data/typo.json не найден
 ```
+
+
+## Чтение CSV и XLSX
+
+Функции `read_transactions_csv(file_path)` и
+`read_transactions_excel(file_path)` находятся в `src.utils` и используют
+`pandas`. Для XLSX установлен движок `openpyxl`; читается первый лист.
+CSV читается в UTF-8 (в том числе с BOM), разделитель — `;`, как в файле задания.
+
+```python
+from src.utils import read_transactions_csv, read_transactions_excel
+
+csv_transactions = read_transactions_csv("data/transactions.csv")
+excel_transactions = read_transactions_excel("data/transactions_excel.xlsx")
+```
+
+Результат — список словарей с ключами из заголовков таблицы:
+`id`, `state`, `date`, `amount`, `currency_name`, `currency_code`,
+`from`, `to`, `description`. Пропуски заменяются на `None`, номера отправителя
+и получателя читаются как строки, чтобы сохранить ведущие нули.
+Отсутствующие, пустые и нечитаемые файлы возвращают `[]` с записью ошибки
+в журнал `utils`; ошибки доступа передаются вызывающему коду.
+Таблица только с заголовками и пустой лист XLSX также дают `[]`.
+
+Данные сохраняют плоскую структуру исходных таблиц. Для передачи в
+`filter_by_currency` или `convert_to_rub`, ожидающие JSON-структуру
+`operationAmount`, понадобится отдельное преобразование полей суммы и валюты.
+
+Эталонные файлы сохранены без изменений из репозитория
+[skypro-008/transactions](https://github.com/skypro-008/transactions):
+[CSV](https://github.com/skypro-008/transactions/blob/main/transactions.csv) и
+[XLSX](https://github.com/skypro-008/transactions/blob/main/transactions_excel.xlsx).
+Оба файла используются в интеграционных тестах; тестам не нужен доступ к сети.
+
+Зависимости зафиксированы в `poetry.lock`. Версии pandas, NumPy и mypy ограничены
+для сохранения заявленной проектом совместимости с Python 3.9.
+`pandas-stubs` обеспечивает проверку типов вызовов pandas.
