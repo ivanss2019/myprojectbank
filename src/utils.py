@@ -1,7 +1,24 @@
 """Функции для чтения исходных данных о транзакциях из файлов."""
 
 import json
+import logging
+import os
 from typing import Any, Dict, List
+
+LOG_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs"
+)
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "utils.log")
+
+logger = logging.getLogger("utils")
+logger.setLevel(logging.DEBUG)
+logger.propagate = False
+_file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+_file_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+logger.addHandler(_file_handler)
 
 
 def read_transactions_json(file_path: str) -> List[Dict[str, Any]]:
@@ -28,10 +45,16 @@ def read_transactions_json(file_path: str) -> List[Dict[str, Any]]:
     try:
         with open(file_path, "r", encoding="utf-8") as json_file:
             data = json.load(json_file)
-    except (FileNotFoundError, json.JSONDecodeError):
+    except FileNotFoundError:
+        logger.warning("Файл %s не найден", file_path)
+        return []
+    except json.JSONDecodeError:
+        logger.warning("Файл %s не содержит валидный JSON", file_path)
         return []
 
     if not isinstance(data, list):
+        logger.warning("Файл %s не содержит список транзакций", file_path)
         return []
 
+    logger.info("Из файла %s прочитано транзакций: %d", file_path, len(data))
     return data

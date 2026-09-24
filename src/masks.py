@@ -1,5 +1,23 @@
 """Функции маскировки номеров банковских карт и счетов."""
 
+import logging
+import os
+
+LOG_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs"
+)
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "masks.log")
+
+logger = logging.getLogger("masks")
+logger.setLevel(logging.DEBUG)
+logger.propagate = False
+_file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+_file_handler.setFormatter(
+    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+)
+logger.addHandler(_file_handler)
+
 
 def get_mask_card_number(card_number: str) -> str:
     """Возвращает замаскированный номер банковской карты.
@@ -21,7 +39,9 @@ def get_mask_card_number(card_number: str) -> str:
     first_block = number[:4]
     second_block = number[4:6]
     last_block = number[-4:]
-    return f"{first_block} {second_block}** **** {last_block}"
+    masked = f"{first_block} {second_block}** **** {last_block}"
+    logger.info("Номер карты успешно замаскирован")
+    return masked
 
 
 def get_mask_account(account_number: str) -> str:
@@ -41,4 +61,6 @@ def get_mask_account(account_number: str) -> str:
         Замаскированный номер счета.
     """
     number = str(account_number)
-    return f"**{number[-4:]}"
+    masked = f"**{number[-4:]}"
+    logger.info("Номер счета успешно замаскирован")
+    return masked
