@@ -12,11 +12,13 @@ LOG_FILE = os.path.join(LOG_DIR, "masks.log")
 logger = logging.getLogger("masks")
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
-_file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
-_file_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logger.addHandler(_file_handler)
+file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def get_mask_card_number(card_number: str) -> str:
@@ -34,8 +36,18 @@ def get_mask_card_number(card_number: str) -> str:
 
     Returns:
         Замаскированный номер карты.
+
+    Raises:
+        ValueError: если номер карты содержит символы, кроме цифр.
     """
     number = str(card_number)
+    if number and not number.isdigit():
+        logger.error(
+            "Не удалось замаскировать номер карты: номер содержит"
+            " недопустимые символы (ожидались только цифры)"
+        )
+        raise ValueError("Номер карты должен состоять только из цифр")
+
     first_block = number[:4]
     second_block = number[4:6]
     last_block = number[-4:]
@@ -59,8 +71,18 @@ def get_mask_account(account_number: str) -> str:
 
     Returns:
         Замаскированный номер счета.
+
+    Raises:
+        ValueError: если номер счета содержит символы, кроме цифр.
     """
     number = str(account_number)
+    if number and not number.isdigit():
+        logger.error(
+            "Не удалось замаскировать номер счета: номер содержит"
+            " недопустимые символы (ожидались только цифры)"
+        )
+        raise ValueError("Номер счета должен состоять только из цифр")
+
     masked = f"**{number[-4:]}"
     logger.info("Номер счета успешно замаскирован")
     return masked

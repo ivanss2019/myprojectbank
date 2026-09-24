@@ -14,11 +14,13 @@ LOG_FILE = os.path.join(LOG_DIR, "utils.log")
 logger = logging.getLogger("utils")
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
-_file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
-_file_handler.setFormatter(
-    logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
-logger.addHandler(_file_handler)
+file_handler = logging.FileHandler(LOG_FILE, mode="w", encoding="utf-8")
+file_handler.setFormatter(file_formatter)
+logger.addHandler(file_handler)
 
 
 def read_transactions_json(file_path: str) -> List[Dict[str, Any]]:
@@ -46,14 +48,14 @@ def read_transactions_json(file_path: str) -> List[Dict[str, Any]]:
         with open(file_path, "r", encoding="utf-8") as json_file:
             data = json.load(json_file)
     except FileNotFoundError:
-        logger.warning("Файл %s не найден", file_path)
+        logger.error("Файл %s не найден", file_path)
         return []
     except json.JSONDecodeError:
-        logger.warning("Файл %s не содержит валидный JSON", file_path)
+        logger.error("Файл %s не содержит валидный JSON", file_path)
         return []
 
     if not isinstance(data, list):
-        logger.warning("Файл %s не содержит список транзакций", file_path)
+        logger.error("Файл %s не содержит список транзакций", file_path)
         return []
 
     logger.info("Из файла %s прочитано транзакций: %d", file_path, len(data))

@@ -72,3 +72,25 @@ def test_get_mask_account_empty_string() -> None:
     """Если номер счета отсутствует (пустая строка), функция не падает
     и возвращает только маску без цифр."""
     assert get_mask_account("") == "**"
+
+
+@pytest.mark.parametrize(
+    "card_number",
+    ["abcd1234efgh5678", "7000-7922-8960-6361", "70007922896О6361"],
+)
+def test_get_mask_card_number_invalid_characters_raises(card_number: str) -> None:
+    """Номер карты с недопустимыми символами (не только цифры)
+    приводит к ValueError."""
+    with pytest.raises(ValueError):
+        get_mask_card_number(card_number)
+
+
+@pytest.mark.parametrize(
+    "account_number",
+    ["abc123", "7365-4108", "счет12345"],
+)
+def test_get_mask_account_invalid_characters_raises(account_number: str) -> None:
+    """Номер счета с недопустимыми символами (не только цифры)
+    приводит к ValueError."""
+    with pytest.raises(ValueError):
+        get_mask_account(account_number)
