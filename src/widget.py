@@ -1,6 +1,8 @@
 """Функции для нового функционала виджета: маскировка "тип + номер" и даты."""
 
 from datetime import datetime
+from decimal import Decimal
+from typing import Any, Dict
 
 from .masks import get_mask_account, get_mask_card_number
 
@@ -52,5 +54,27 @@ def get_date(date_string: str) -> str:
     Returns:
         Дата в формате "ДД.ММ.ГГГГ".
     """
-    parsed_date = datetime.fromisoformat(date_string)
+    if not isinstance(date_string, str):
+        raise TypeError("Дата должна быть строкой")
+    parsed_date = datetime.fromisoformat(date_string.replace("Z", "+00:00"))
     return parsed_date.strftime("%d.%m.%Y")
+
+
+def format_transaction(transaction: Dict[str, Any]) -> str:
+    """Форматирует дату, описание, маскированные реквизиты и сумму операции.
+
+    Для открытия вклада без отправителя выводится только получатель.
+    RUB обозначается как «руб.», остальные валюты — своим кодом.
+    Сумма выводится без незначащих нулей, без конвертации валют.
+    """
+    heading = f"{get_date(transaction['date'])} {transaction['description']}"
+    destination = mask_account_card(transaction["to"])
+    source = transaction.get("from")
+    route = f"{mask_account_card(source)} -> {destination}" if source else destination
+    operation_amount = transaction["operationAmount"]
+    amount = format(Decimal(str(operation_amount["amount"])), "f")
+    if "." in amount:
+        amount = amount.rstrip("0").rstrip(".")
+    code = operation_amount["currency"]["code"]
+    currency = "руб." if code == "RUB" else code
+    return f"{heading}\n{route}\nСумма: {amount} {currency}"
