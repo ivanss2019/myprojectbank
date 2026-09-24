@@ -4,9 +4,6 @@ import json
 import logging
 import os
 from typing import Any, Dict, List
-from zipfile import BadZipFile
-
-import pandas as pd
 
 LOG_DIR = os.path.join(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "logs"
@@ -63,57 +60,3 @@ def read_transactions_json(file_path: str) -> List[Dict[str, Any]]:
 
     logger.info("Из файла %s прочитано транзакций: %d", file_path, len(data))
     return data
-
-
-def _table_to_transactions(table: pd.DataFrame) -> List[Dict[str, Any]]:
-    """Возвращает строки таблицы как словари, заменяя пропуски на None."""
-    table = table.astype(object).where(pd.notna(table), None)
-    return [
-        {str(key): value for key, value in row.items()}
-        for row in table.to_dict(orient="records")
-    ]
-
-
-def read_transactions_csv(file_path: str) -> List[Dict[str, Any]]:
-    """Читает CSV в UTF-8 с разделителем «;» в список словарей.
-
-    Ключи соответствуют заголовкам таблицы, пропуски заменяются на None.
-    Отсутствующий, пустой или некорректный файл даёт пустой список.
-    Ошибки доступа к файлу передаются вызывающему коду.
-    """
-    try:
-        table = pd.read_csv(
-            file_path, sep=";", encoding="utf-8-sig", dtype={"from": str, "to": str}
-        )
-    except (
-        FileNotFoundError,
-        pd.errors.EmptyDataError,
-        pd.errors.ParserError,
-        UnicodeDecodeError,
-    ) as error:
-        logger.error("Не удалось прочитать CSV %s: %s", file_path, error)
-        return []
-
-    transactions = _table_to_transactions(table)
-    logger.info("Из файла %s прочитано транзакций: %d", file_path, len(transactions))
-    return transactions
-
-
-def read_transactions_excel(file_path: str) -> List[Dict[str, Any]]:
-    """Читает первый лист XLSX в список словарей через pandas/openpyxl.
-
-    Ключи соответствуют заголовкам таблицы, пропуски заменяются на None.
-    Отсутствующий, пустой или некорректный файл даёт пустой список.
-    Ошибки доступа к файлу передаются вызывающему коду.
-    """
-    try:
-        table = pd.read_excel(
-            file_path, engine="openpyxl", dtype={"from": str, "to": str}
-        )
-    except (FileNotFoundError, BadZipFile, ValueError) as error:
-        logger.error("Не удалось прочитать XLSX %s: %s", file_path, error)
-        return []
-
-    transactions = _table_to_transactions(table)
-    logger.info("Из файла %s прочитано транзакций: %d", file_path, len(transactions))
-    return transactions

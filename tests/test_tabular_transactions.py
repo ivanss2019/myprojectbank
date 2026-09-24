@@ -2,13 +2,13 @@
 
 from pathlib import Path
 from typing import Any, Callable, Dict, List
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from zipfile import BadZipFile
 
 import pandas as pd
 import pytest
 
-from src.utils import read_transactions_csv, read_transactions_excel
+from src.file_operations import read_transactions_csv, read_transactions_excel
 
 Reader = Callable[[str], List[Dict[str, Any]]]
 READERS = [(read_transactions_csv, "csv"), (read_transactions_excel, "xlsx")]
@@ -16,6 +16,7 @@ READERS = [(read_transactions_csv, "csv"), (read_transactions_excel, "xlsx")]
 
 @pytest.mark.parametrize("reader,extension", READERS)
 def test_reads_real_table(reader: Reader, extension: str, tmp_path: Path) -> None:
+    """Сохраняются данные, ведущие нули, кириллица и пропуски."""
     rows = [
         {
             "id": 1,
@@ -45,11 +46,13 @@ def test_reads_real_table(reader: Reader, extension: str, tmp_path: Path) -> Non
 
 @pytest.mark.parametrize("reader,extension", READERS)
 def test_missing_file(reader: Reader, extension: str, tmp_path: Path) -> None:
+    """Отсутствующий файл возвращает пустой список."""
     assert reader(str(tmp_path / f"missing.{extension}")) == []
 
 
 @pytest.mark.parametrize("reader,extension", READERS)
 def test_zero_byte_file(reader: Reader, extension: str, tmp_path: Path) -> None:
+    """Файл без содержимого возвращает пустой список."""
     path = tmp_path / f"empty.{extension}"
     path.touch()
     assert reader(str(path)) == []
@@ -57,6 +60,7 @@ def test_zero_byte_file(reader: Reader, extension: str, tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("reader,extension", READERS)
 def test_headers_only(reader: Reader, extension: str, tmp_path: Path) -> None:
+    """Таблица с заголовками без строк возвращает пустой список."""
     path = tmp_path / f"headers.{extension}"
     table = pd.DataFrame(columns=["id", "amount"])
     if extension == "csv":
@@ -67,6 +71,7 @@ def test_headers_only(reader: Reader, extension: str, tmp_path: Path) -> None:
 
 
 def test_empty_excel_sheet(tmp_path: Path) -> None:
+    """Пустой лист Excel возвращает пустой список."""
     path = tmp_path / "empty.xlsx"
     pd.DataFrame().to_excel(path, index=False, engine="openpyxl")
     assert read_transactions_excel(str(path)) == []
@@ -74,12 +79,14 @@ def test_empty_excel_sheet(tmp_path: Path) -> None:
 
 @pytest.mark.parametrize("content", [b'id;amount\n1;"unfinished', b"id;amount\n1;\xff"])
 def test_invalid_csv(content: bytes, tmp_path: Path) -> None:
+    """Повреждённый CSV или неверная кодировка обрабатываются."""
     path = tmp_path / "invalid.csv"
     path.write_bytes(content)
     assert read_transactions_csv(str(path)) == []
 
 
 def test_invalid_excel(tmp_path: Path) -> None:
+    """Файл, не являющийся XLSX, возвращает пустой список."""
     path = tmp_path / "invalid.xlsx"
     path.write_text("This is not an XLSX workbook", encoding="utf-8")
     assert read_transactions_excel(str(path)) == []
@@ -93,8 +100,11 @@ def test_invalid_excel(tmp_path: Path) -> None:
     ],
 )
 def test_pandas_called(reader: Reader, method: str) -> None:
+    """Mock и patch проверяют параметры чтения обоих форматов."""
     with patch(
-        f"src.utils.pd.{method}", return_value=pd.DataFrame([{"id": 7}])
+        f"src.file_operations.pd.{method}",
+        new_callable=Mock,
+        return_value=pd.DataFrame([{"id": 7}]),
     ) as mock:
         assert reader("input") == [{"id": 7}]
     if method == "read_csv":
@@ -109,7 +119,8 @@ def test_pandas_called(reader: Reader, method: str) -> None:
 
 @pytest.mark.parametrize("error", [BadZipFile("broken"), ValueError("no worksheets")])
 def test_excel_read_error(error: Exception) -> None:
-    with patch("src.utils.pd.read_excel", side_effect=error):
+    """Ошибки архива и структуры книги обрабатываются."""
+    with patch("src.file_operations.pd.read_excel", side_effect=error):
         assert read_transactions_excel("broken.xlsx") == []
 
 
@@ -121,7 +132,8 @@ def test_excel_read_error(error: Exception) -> None:
     ],
 )
 def test_permission_error_propagates(reader: Reader, method: str) -> None:
-    with patch(f"src.utils.pd.{method}", side_effect=PermissionError):
+    """Ошибка доступа передаётся вызывающему коду."""
+    with patch(f"src.file_operations.pd.{method}", side_effect=PermissionError):
         with pytest.raises(PermissionError):
             reader("private")
 
@@ -134,6 +146,7 @@ def test_permission_error_propagates(reader: Reader, method: str) -> None:
     ],
 )
 def test_reference_file(reader: Reader, filename: str) -> None:
+    """Эталонный файл содержит ожидаемые строки и поля."""
     path = Path(__file__).resolve().parents[1] / "data" / filename
     rows = reader(str(path))
     assert len(rows) == 1000
@@ -153,6 +166,7 @@ def test_reference_file(reader: Reader, filename: str) -> None:
 
 
 def test_reference_formats_match() -> None:
+    """Оба эталонных файла возвращают одинаковые транзакции."""
     data_dir = Path(__file__).resolve().parents[1] / "data"
     csv_rows = read_transactions_csv(str(data_dir / "transactions.csv"))
     excel_rows = read_transactions_excel(str(data_dir / "transactions_excel.xlsx"))

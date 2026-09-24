@@ -22,7 +22,8 @@
 │   ├── processing.py    # фильтрация и сортировка списка операций
 │   ├── generators.py    # генераторы для обработки транзакций и номеров карт
 │   ├── decorators.py    # декоратор log для логирования вызовов функций
-│   ├── utils.py          # чтение транзакций из JSON, CSV и XLSX
+│   ├── utils.py          # чтение транзакций из JSON
+│   ├── file_operations.py # чтение транзакций из CSV и XLSX
 │   └── external_api.py   # конвертация суммы транзакции в рубли
 └── tests/
     ├── __init__.py
@@ -263,12 +264,12 @@ API](https://apilayer.com/marketplace/exchangerates_data-api)
 ## Чтение CSV и XLSX
 
 Функции `read_transactions_csv(file_path)` и
-`read_transactions_excel(file_path)` находятся в `src.utils` и используют
+`read_transactions_excel(file_path)` находятся в отдельном модуле `src.file_operations` и используют
 `pandas`. Для XLSX установлен движок `openpyxl`; читается первый лист.
 CSV читается в UTF-8 (в том числе с BOM), разделитель — `;`, как в файле задания.
 
 ```python
-from src.utils import read_transactions_csv, read_transactions_excel
+from src.file_operations import read_transactions_csv, read_transactions_excel
 
 csv_transactions = read_transactions_csv("data/transactions.csv")
 excel_transactions = read_transactions_excel("data/transactions_excel.xlsx")
@@ -279,7 +280,7 @@ excel_transactions = read_transactions_excel("data/transactions_excel.xlsx")
 `from`, `to`, `description`. Пропуски заменяются на `None`, номера отправителя
 и получателя читаются как строки, чтобы сохранить ведущие нули.
 Отсутствующие, пустые и нечитаемые файлы возвращают `[]` с записью ошибки
-в журнал `utils`; ошибки доступа передаются вызывающему коду.
+в стандартный журнал `src.file_operations`; ошибки доступа передаются вызывающему коду.
 Таблица только с заголовками и пустой лист XLSX также дают `[]`.
 
 Данные сохраняют плоскую структуру исходных таблиц. Для передачи в
