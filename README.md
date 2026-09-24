@@ -7,6 +7,7 @@
 
 ```
 .
+├── main.py            # консольное меню и основной сценарий
 ├── pyproject.toml     # конфигурация Poetry, black, isort, mypy
 ├── .flake8            # конфигурация flake8
 ├── .env.template       # шаблон переменных окружения (скопировать в .env)
@@ -31,6 +32,8 @@
     ├── test_masks.py
     ├── test_widget.py
     ├── test_processing.py
+    ├── test_search.py
+    ├── test_main.py
     ├── test_generators.py
     ├── test_decorators.py
     ├── test_utils.py
@@ -56,11 +59,11 @@ cp .env.template .env
 
 ```bash
 # статический анализ стиля
-poetry run flake8 src tests
+poetry run flake8 main.py src tests
 
 # проверка форматирования
-poetry run black --check src tests
-poetry run isort --check-only src tests
+poetry run black --check main.py src tests
+poetry run isort --check-only main.py src tests
 
 # проверка типов
 poetry run mypy
@@ -69,10 +72,10 @@ poetry run mypy
 poetry run pytest
 
 # тесты с отчетом о покрытии кода
-poetry run pytest --cov=src --cov-report=term-missing
+poetry run pytest --cov=src --cov=main --cov-report=term-missing
 
 # тесты с HTML-отчетом о покрытии кода (открыть htmlcov/index.html в браузере)
-poetry run pytest --cov=src --cov-report=html
+poetry run pytest --cov=src --cov=main --cov-report=html
 ```
 
 ## Модуль `src.masks`
@@ -285,7 +288,8 @@ excel_transactions = read_transactions_excel("data/transactions_excel.xlsx")
 
 Данные сохраняют плоскую структуру исходных таблиц. Для передачи в
 `filter_by_currency` или `convert_to_rub`, ожидающие JSON-структуру
-`operationAmount`, понадобится отдельное преобразование полей суммы и валюты.
+`operationAmount`, используйте `normalize_transactions` из
+`src.file_operations`. Консольное меню выполняет это преобразование автоматически.
 
 Эталонные файлы сохранены без изменений из репозитория
 [skypro-008/transactions](https://github.com/skypro-008/transactions):
@@ -296,3 +300,77 @@ excel_transactions = read_transactions_excel("data/transactions_excel.xlsx")
 Зависимости зафиксированы в `poetry.lock`. Версии pandas, NumPy и mypy ограничены
 для сохранения заявленной проектом совместимости с Python 3.9.
 `pandas-stubs` обеспечивает проверку типов вызовов pandas.
+
+
+## Поиск и подсчёт категорий
+
+В модуле `src.processing` добавлены две функции:
+
+- `process_bank_search(data, search)` возвращает операции, содержащие строку
+  поиска в `description`. Используется `re` с `re.IGNORECASE` и `re.escape`:
+  поиск не зависит от регистра, а спецсимволы (`.`, `+`, `[`) считаются
+  обычным текстом. Пустой запрос выбирает все строковые описания.
+  Операции без строкового описания пропускаются; исходный порядок сохраняется.
+- `process_bank_operations(data, categories)` возвращает словарь количества
+  операций по запрошенным категориям. Категория — точное значение
+  `description` с учётом регистра. Для отсутствующих категорий возвращается 0,
+  дубли категорий не увеличивают счётчики. Используется `collections.Counter`.
+
+```python
+from src.processing import process_bank_operations, process_bank_search
+
+operations = [
+    {"description": "Перевод организации"},
+    {"description": "Открытие вклада"},
+    {"description": "Перевод организации"},
+]
+assert len(process_bank_search(operations, "ПЕРЕВОД")) == 2
+assert process_bank_operations(operations, ["Перевод организации", "Оплата"]) == {
+    "Перевод организации": 2,
+    "Оплата": 0,
+}
+```
+
+## Консольная программа
+
+Запуск из корня проекта:
+
+```bash
+poetry run python main.py
+```
+
+Функция `main()` в модуле `main` связывает чтение, фильтрацию, сортировку
+и форматирование операций:
+
+1. Выберите JSON (1), CSV (2) или XLSX (3). Программа читает соответствующий
+   файл из `data/`; пути вычисляются относительно `main.py`.
+2. Введите статус EXECUTED, CANCELED или PENDING в любом регистре.
+   При неверном статусе программа сообщает об ошибке и повторяет вопрос.
+3. Выберите, нужна ли сортировка по дате; если да — по возрастанию или
+   по убыванию.
+4. Выберите, оставлять ли только рублёвые операции.
+5. Выберите, нужен ли поиск по описанию, и введите искомый текст.
+
+Ответы «Да/Нет» и направление сортировки не зависят от регистра.
+Неверный пункт меню или ответ повторно запрашивается. После фильтров выводится
+количество операций и их список: дата ДД.ММ.ГГГГ, описание, замаскированные
+реквизиты, сумма и валюта. Для открытия вклада без отправителя выводится
+только счёт получателя. RUB обозначается «руб.», другие валюты — кодом валюты.
+Конвертация валют и сетевые запросы при просмотре не выполняются.
+
+Если совпадений нет, выводится:
+
+```text
+Не найдено ни одной транзакции, подходящей под ваши условия фильтрации
+```
+
+`normalize_transactions` из `src.file_operations` создаёт общий формат
+`operationAmount` для табличных данных, нормализует статус и пропускает пустые
+записи. Исходные данные и функции чтения не изменяются. Даты с суффиксом `Z`
+поддерживаются при сортировке и форматировании, включая Python 3.9.
+`format_transaction` из `src.widget` отвечает за вывод одной операции.
+
+Тесты покрывают поиск, категории, все источники, статусы, оба направления
+сортировки, сочетание фильтров, повторный ввод, маскировку и пустую выборку.
+Полный сценарий также проверяется на реальных JSON/CSV/XLSX-файлах задания.
+HTML-отчёт покрытия включает `src` и консольный модуль `main.py`.

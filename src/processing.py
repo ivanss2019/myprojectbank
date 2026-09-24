@@ -1,5 +1,7 @@
 """Функции обработки списка банковских операций."""
 
+import re
+from collections import Counter
 from datetime import datetime
 from typing import Any, Dict, List
 
@@ -57,6 +59,41 @@ def sort_by_date(
     """
     return sorted(
         data,
-        key=lambda item: datetime.fromisoformat(item["date"]),
+        key=lambda item: datetime.fromisoformat(item["date"].replace("Z", "+00:00")),
         reverse=descending,
     )
+
+
+def process_bank_search(
+    data: List[Dict[str, Any]], search: str
+) -> List[Dict[str, Any]]:
+    """Ищет буквальную подстроку в description через re без учёта регистра.
+
+    Спецсимволы не интерпретируются как регулярное выражение. Операции
+    без строкового описания пропускаются. Пустой запрос выбирает все
+    строковые описания. Порядок и исходные словари не изменяются.
+    """
+    pattern = re.compile(re.escape(search), re.IGNORECASE)
+    return [
+        operation
+        for operation in data
+        if isinstance(operation.get("description"), str)
+        and pattern.search(operation["description"]) is not None
+    ]
+
+
+def process_bank_operations(
+    data: List[Dict[str, Any]], categories: List[str]
+) -> Dict[str, int]:
+    """Считает операции с точным совпадением description и названия категории.
+
+    Возвращает все запрошенные категории, включая отсутствующие (0).
+    Повторяющиеся категории не увеличивают счётчик. Регистр учитывается.
+    Операции без строкового описания пропускаются, входные данные не меняются.
+    """
+    counts = Counter(
+        operation["description"]
+        for operation in data
+        if isinstance(operation.get("description"), str)
+    )
+    return {category: counts[category] for category in categories}

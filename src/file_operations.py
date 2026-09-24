@@ -61,3 +61,28 @@ def read_transactions_excel(file_path: str) -> List[Dict[str, Any]]:
     transactions = _table_to_transactions(table)
     logger.info("Из файла %s прочитано транзакций: %d", file_path, len(transactions))
     return transactions
+
+
+def normalize_transactions(data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Приводит плоские CSV/XLSX-строки к структуре JSON для общего меню.
+
+    Создаёт новые словари, не изменяя исходные данные. Пустые строки
+    пропускаются. Сумма и валюта помещаются в operationAmount, статус
+    приводится к верхнему регистру. Вложенная структура JSON сохраняется.
+    """
+    transactions = []
+    for row in data:
+        if not row or not any(value is not None for value in row.values()):
+            continue
+        transaction = dict(row)
+        transaction["state"] = str(row.get("state") or "").strip().upper()
+        if "operationAmount" not in row:
+            transaction["operationAmount"] = {
+                "amount": row.get("amount"),
+                "currency": {
+                    "name": row.get("currency_name"),
+                    "code": row.get("currency_code"),
+                },
+            }
+        transactions.append(transaction)
+    return transactions

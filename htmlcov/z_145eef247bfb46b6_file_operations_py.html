@@ -54,8 +54,8 @@
             </div>
         </aside>
         <h2>
-            <span class="text">26 statements &nbsp;</span>
-            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">26<span class="text"> run</span></button>
+            <span class="text">37 statements &nbsp;</span>
+            <button type="button" class="run button_toggle_run" value="run" data-shortcut="r" title="Toggle lines run">37<span class="text"> run</span></button>
             <button type="button" class="mis show_mis button_toggle_mis" value="mis" data-shortcut="m" title="Toggle lines missing">0<span class="text"> missing</span></button>
             <button type="button" class="exc show_exc button_toggle_exc" value="exc" data-shortcut="x" title="Toggle lines excluded">0<span class="text"> excluded</span></button>
         </h2>
@@ -65,7 +65,7 @@
             <a id="nextFileLink" class="nav" href="z_145eef247bfb46b6_generators_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.16.1">coverage.py v7.16.1</a>,
-            created at 2026-09-24 20:55 +0300
+            created at 2026-09-24 21:18 +0300
         </p>
         <aside class="hidden">
             <button type="button" class="button_next_chunk" data-shortcut="j"></button>
@@ -143,6 +143,31 @@
     <p class="run"><span class="n"><a id="t61" href="#t61">61</a></span><span class="t">    <span class="nam">transactions</span> <span class="op">=</span> <span class="nam">_table_to_transactions</span><span class="op">(</span><span class="nam">table</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t62" href="#t62">62</a></span><span class="t">    <span class="nam">logger</span><span class="op">.</span><span class="nam">info</span><span class="op">(</span><span class="str">&quot;&#1048;&#1079; &#1092;&#1072;&#1081;&#1083;&#1072; %s &#1087;&#1088;&#1086;&#1095;&#1080;&#1090;&#1072;&#1085;&#1086; &#1090;&#1088;&#1072;&#1085;&#1079;&#1072;&#1082;&#1094;&#1080;&#1081;: %d&quot;</span><span class="op">,</span> <span class="nam">file_path</span><span class="op">,</span> <span class="nam">len</span><span class="op">(</span><span class="nam">transactions</span><span class="op">)</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p class="run"><span class="n"><a id="t63" href="#t63">63</a></span><span class="t">    <span class="key">return</span> <span class="nam">transactions</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t64" href="#t64">64</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t65" href="#t65">65</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t66" href="#t66">66</a></span><span class="t"><span class="key">def</span> <span class="nam">normalize_transactions</span><span class="op">(</span><span class="nam">data</span><span class="op">:</span> <span class="nam">List</span><span class="op">[</span><span class="nam">Dict</span><span class="op">[</span><span class="nam">str</span><span class="op">,</span> <span class="nam">Any</span><span class="op">]</span><span class="op">]</span><span class="op">)</span> <span class="op">-&gt;</span> <span class="nam">List</span><span class="op">[</span><span class="nam">Dict</span><span class="op">[</span><span class="nam">str</span><span class="op">,</span> <span class="nam">Any</span><span class="op">]</span><span class="op">]</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t67" href="#t67">67</a></span><span class="t">    <span class="str">&quot;&quot;&quot;&#1055;&#1088;&#1080;&#1074;&#1086;&#1076;&#1080;&#1090; &#1087;&#1083;&#1086;&#1089;&#1082;&#1080;&#1077; CSV/XLSX-&#1089;&#1090;&#1088;&#1086;&#1082;&#1080; &#1082; &#1089;&#1090;&#1088;&#1091;&#1082;&#1090;&#1091;&#1088;&#1077; JSON &#1076;&#1083;&#1103; &#1086;&#1073;&#1097;&#1077;&#1075;&#1086; &#1084;&#1077;&#1085;&#1102;.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t68" href="#t68">68</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t69" href="#t69">69</a></span><span class="t"><span class="str">    &#1057;&#1086;&#1079;&#1076;&#1072;&#1105;&#1090; &#1085;&#1086;&#1074;&#1099;&#1077; &#1089;&#1083;&#1086;&#1074;&#1072;&#1088;&#1080;, &#1085;&#1077; &#1080;&#1079;&#1084;&#1077;&#1085;&#1103;&#1103; &#1080;&#1089;&#1093;&#1086;&#1076;&#1085;&#1099;&#1077; &#1076;&#1072;&#1085;&#1085;&#1099;&#1077;. &#1055;&#1091;&#1089;&#1090;&#1099;&#1077; &#1089;&#1090;&#1088;&#1086;&#1082;&#1080;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t70" href="#t70">70</a></span><span class="t"><span class="str">    &#1087;&#1088;&#1086;&#1087;&#1091;&#1089;&#1082;&#1072;&#1102;&#1090;&#1089;&#1103;. &#1057;&#1091;&#1084;&#1084;&#1072; &#1080; &#1074;&#1072;&#1083;&#1102;&#1090;&#1072; &#1087;&#1086;&#1084;&#1077;&#1097;&#1072;&#1102;&#1090;&#1089;&#1103; &#1074; operationAmount, &#1089;&#1090;&#1072;&#1090;&#1091;&#1089;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t71" href="#t71">71</a></span><span class="t"><span class="str">    &#1087;&#1088;&#1080;&#1074;&#1086;&#1076;&#1080;&#1090;&#1089;&#1103; &#1082; &#1074;&#1077;&#1088;&#1093;&#1085;&#1077;&#1084;&#1091; &#1088;&#1077;&#1075;&#1080;&#1089;&#1090;&#1088;&#1091;. &#1042;&#1083;&#1086;&#1078;&#1077;&#1085;&#1085;&#1072;&#1103; &#1089;&#1090;&#1088;&#1091;&#1082;&#1090;&#1091;&#1088;&#1072; JSON &#1089;&#1086;&#1093;&#1088;&#1072;&#1085;&#1103;&#1077;&#1090;&#1089;&#1103;.</span>&nbsp;</span><span class="r"></span></p>
+    <p class="pln"><span class="n"><a id="t72" href="#t72">72</a></span><span class="t"><span class="str">    &quot;&quot;&quot;</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t73" href="#t73">73</a></span><span class="t">    <span class="nam">transactions</span> <span class="op">=</span> <span class="op">[</span><span class="op">]</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t74" href="#t74">74</a></span><span class="t">    <span class="key">for</span> <span class="nam">row</span> <span class="key">in</span> <span class="nam">data</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t75" href="#t75">75</a></span><span class="t">        <span class="key">if</span> <span class="key">not</span> <span class="nam">row</span> <span class="key">or</span> <span class="key">not</span> <span class="nam">any</span><span class="op">(</span><span class="nam">value</span> <span class="key">is</span> <span class="key">not</span> <span class="key">None</span> <span class="key">for</span> <span class="nam">value</span> <span class="key">in</span> <span class="nam">row</span><span class="op">.</span><span class="nam">values</span><span class="op">(</span><span class="op">)</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t76" href="#t76">76</a></span><span class="t">            <span class="key">continue</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t77" href="#t77">77</a></span><span class="t">        <span class="nam">transaction</span> <span class="op">=</span> <span class="nam">dict</span><span class="op">(</span><span class="nam">row</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t78" href="#t78">78</a></span><span class="t">        <span class="nam">transaction</span><span class="op">[</span><span class="str">&quot;state&quot;</span><span class="op">]</span> <span class="op">=</span> <span class="nam">str</span><span class="op">(</span><span class="nam">row</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&quot;state&quot;</span><span class="op">)</span> <span class="key">or</span> <span class="str">&quot;&quot;</span><span class="op">)</span><span class="op">.</span><span class="nam">strip</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">upper</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t79" href="#t79">79</a></span><span class="t">        <span class="key">if</span> <span class="str">&quot;operationAmount&quot;</span> <span class="key">not</span> <span class="key">in</span> <span class="nam">row</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t80" href="#t80">80</a></span><span class="t">            <span class="nam">transaction</span><span class="op">[</span><span class="str">&quot;operationAmount&quot;</span><span class="op">]</span> <span class="op">=</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t81" href="#t81">81</a></span><span class="t">                <span class="str">&quot;amount&quot;</span><span class="op">:</span> <span class="nam">row</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&quot;amount&quot;</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t82" href="#t82">82</a></span><span class="t">                <span class="str">&quot;currency&quot;</span><span class="op">:</span> <span class="op">{</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t83" href="#t83">83</a></span><span class="t">                    <span class="str">&quot;name&quot;</span><span class="op">:</span> <span class="nam">row</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&quot;currency_name&quot;</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t84" href="#t84">84</a></span><span class="t">                    <span class="str">&quot;code&quot;</span><span class="op">:</span> <span class="nam">row</span><span class="op">.</span><span class="nam">get</span><span class="op">(</span><span class="str">&quot;currency_code&quot;</span><span class="op">)</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t85" href="#t85">85</a></span><span class="t">                <span class="op">}</span><span class="op">,</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run run2"><span class="n"><a id="t86" href="#t86">86</a></span><span class="t">            <span class="op">}</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t87" href="#t87">87</a></span><span class="t">        <span class="nam">transactions</span><span class="op">.</span><span class="nam">append</span><span class="op">(</span><span class="nam">transaction</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p class="run"><span class="n"><a id="t88" href="#t88">88</a></span><span class="t">    <span class="key">return</span> <span class="nam">transactions</span>&nbsp;</span><span class="r"></span></p>
 </main>
 <footer>
     <div class="content">
@@ -152,7 +177,7 @@
             <a class="nav" href="z_145eef247bfb46b6_generators_py.html">&#xbb; next</a>
             &nbsp; &nbsp; &nbsp;
             <a class="nav" href="https://coverage.readthedocs.io/en/7.16.1">coverage.py v7.16.1</a>,
-            created at 2026-09-24 20:55 +0300
+            created at 2026-09-24 21:18 +0300
         </p>
     </div>
 </footer>
