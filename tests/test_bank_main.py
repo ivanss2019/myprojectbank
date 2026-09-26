@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 from unittest.mock import patch
 
-import main as app
+import bank_main as app
 import pytest
 
 from src.file_operations import normalize_transactions
@@ -133,7 +133,7 @@ def test_sources(
     """Все пункты меню вызывают нужную функцию чтения и показывают выбор."""
     with (
         patch("builtins.input", side_effect=[choice, "Executed", "нет", "нет", "нет"]),
-        patch(f"main.{reader}", return_value=transactions) as mock,
+        patch(f"bank_main.{reader}", return_value=transactions) as mock,
     ):
         app.main()
     mock.assert_called_once_with(str(app.DATA_DIR / filename))
@@ -164,7 +164,7 @@ def test_all_filters(
     ]
     with (
         patch("builtins.input", side_effect=answers),
-        patch("main.read_transactions_json", return_value=transactions),
+        patch("bank_main.read_transactions_json", return_value=transactions),
     ):
         app.main()
     out = capsys.readouterr().out
@@ -196,7 +196,7 @@ def test_sort_menu(
             "builtins.input",
             side_effect=["1", "EXECUTED", "да", direction, "нет", "нет"],
         ),
-        patch("main.read_transactions_json", return_value=transactions),
+        patch("bank_main.read_transactions_json", return_value=transactions),
     ):
         app.main()
     out = capsys.readouterr().out
@@ -215,7 +215,7 @@ def test_other_statuses(
     """Все разрешённые статусы распознаются независимо от регистра."""
     with (
         patch("builtins.input", side_effect=["1", status, "нет", "нет", "нет"]),
-        patch("main.read_transactions_json", return_value=transactions),
+        patch("bank_main.read_transactions_json", return_value=transactions),
     ):
         app.main()
     out = capsys.readouterr().out
@@ -236,7 +236,7 @@ def test_empty_result(
             side_effect=["1", "EXECUTED", "нет", "нет", "да", "ничего"],
         ),
         patch(
-            "main.read_transactions_json",
+            "bank_main.read_transactions_json",
             return_value=[] if empty_source else transactions,
         ),
     ):
@@ -265,7 +265,7 @@ def test_real_files(choice: str, capsys: pytest.CaptureFixture[str]) -> None:
 def test_entrypoint(
     capsys: pytest.CaptureFixture[str], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """main.py запускается напрямую и находит data независимо от текущей папки."""
+    """Банковский сценарий находит data независимо от текущей папки."""
     path = Path(app.__file__).resolve()
     monkeypatch.chdir(tmp_path)
     with patch("builtins.input", side_effect=["1", "pending", "нет", "нет", "нет"]):

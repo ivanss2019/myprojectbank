@@ -1,4 +1,4 @@
-# Widget — виджет последних банковских операций
+# Учебный проект: банковские операции и e-commerce
 
 Бэкенд для виджета личного кабинета клиента, показывающего несколько
 последних успешных банковских операций.
@@ -7,17 +7,22 @@
 
 ```
 .
-├── main.py            # консольное меню и основной сценарий
+├── main.py            # проверочный пример e-commerce из задания 14.1
+├── bank_main.py       # консольное меню банковских операций
 ├── pyproject.toml     # конфигурация Poetry, black, isort, mypy
 ├── .flake8            # конфигурация flake8
 ├── .env.template       # шаблон переменных окружения (скопировать в .env)
 ├── data/
+│   ├── products.json   # каталог товаров из задания 14.1
 │   ├── operations.json  # тестовый набор данных о транзакциях
 │   ├── transactions.csv
 │   └── transactions_excel.xlsx
 ├── logs/                # логи модулей (создаётся автоматически, .log в .gitignore)
 ├── src/
 │   ├── __init__.py
+│   ├── product.py       # класс Product
+│   ├── category.py      # класс Category и общие счётчики
+│   ├── catalog.py       # загрузка JSON в объекты
 │   ├── masks.py         # маскировка номеров карт и счетов
 │   ├── widget.py        # форматирование данных для отображения в виджете
 │   ├── processing.py    # фильтрация и сортировка списка операций
@@ -33,7 +38,8 @@
     ├── test_widget.py
     ├── test_processing.py
     ├── test_search.py
-    ├── test_main.py
+    ├── test_ecommerce.py
+    ├── test_bank_main.py
     ├── test_generators.py
     ├── test_decorators.py
     ├── test_utils.py
@@ -59,11 +65,11 @@ cp .env.template .env
 
 ```bash
 # статический анализ стиля
-poetry run flake8 main.py src tests
+poetry run flake8 main.py bank_main.py src tests
 
 # проверка форматирования
-poetry run black --check main.py src tests
-poetry run isort --check-only main.py src tests
+poetry run black --check main.py bank_main.py src tests
+poetry run isort --check-only main.py bank_main.py src tests
 
 # проверка типов
 poetry run mypy
@@ -72,10 +78,10 @@ poetry run mypy
 poetry run pytest
 
 # тесты с отчетом о покрытии кода
-poetry run pytest --cov=src --cov=main --cov-report=term-missing
+poetry run pytest --cov --cov-report=term-missing
 
 # тесты с HTML-отчетом о покрытии кода (открыть htmlcov/index.html в браузере)
-poetry run pytest --cov=src --cov=main --cov-report=html
+poetry run pytest --cov --cov-report=html
 ```
 
 ## Модуль `src.masks`
@@ -336,14 +342,14 @@ assert process_bank_operations(operations, ["Перевод организаци
 Запуск из корня проекта:
 
 ```bash
-poetry run python main.py
+poetry run python bank_main.py
 ```
 
-Функция `main()` в модуле `main` связывает чтение, фильтрацию, сортировку
+Функция `main()` в модуле `bank_main` связывает чтение, фильтрацию, сортировку
 и форматирование операций:
 
 1. Выберите JSON (1), CSV (2) или XLSX (3). Программа читает соответствующий
-   файл из `data/`; пути вычисляются относительно `main.py`.
+   файл из `data/`; пути вычисляются относительно `bank_main.py`.
 2. Введите статус EXECUTED, CANCELED или PENDING в любом регистре.
    При неверном статусе программа сообщает об ошибке и повторяет вопрос.
 3. Выберите, нужна ли сортировка по дате; если да — по возрастанию или
@@ -373,4 +379,44 @@ poetry run python main.py
 Тесты покрывают поиск, категории, все источники, статусы, оба направления
 сортировки, сочетание фильтров, повторный ввод, маскировку и пустую выборку.
 Полный сценарий также проверяется на реальных JSON/CSV/XLSX-файлах задания.
-HTML-отчёт покрытия включает `src` и консольный модуль `main.py`.
+HTML-отчёт покрытия включает `src`, `main.py` и `bank_main.py`.
+
+
+## E-commerce — задание 14.1
+
+Запуск предоставленного проверочного примера (добавлены импорты и форматирование):
+
+```bash
+poetry run python main.py
+```
+
+`Product(name, description, price, quantity)` хранит название и описание (`str`),
+цену (`float`) и остаток на складе (`int`).
+`Category(name, description, products)` хранит название, описание и список
+объектов `Product`. Общие атрибуты класса `category_count` и `product_count`
+увеличиваются при создании категории: на одну категорию и на длину списка
+товаров соответственно. Остатки `quantity` не суммируются. Счётчики накапливаются
+в течение процесса; изменение списка после создания категории их не обновляет.
+
+Загрузка категорий и вложенных товаров из JSON:
+
+```python
+from src.catalog import load_categories
+
+categories = load_categories("data/products.json")
+print(categories[0].name)
+print(categories[0].products[0].price)
+```
+
+Функция принимает строку пути или `Path`, читает UTF-8 и возвращает `list[Category]`.
+Каждая повторная загрузка создаёт новые объекты и увеличивает счётчики.
+Ошибки чтения, синтаксиса JSON и отсутствующих полей передаются вызывающему коду.
+Предоставленный каталог содержит 2 категории и 4 товарные позиции.
+
+Источники задания:
+[14.1_main.py](https://drive.google.com/file/d/1CCqQ4aFwYqm9cV_xigc5SoYVjtaSrfu0/view)
+и [products.json](https://drive.google.com/file/d/1fTgJX1_-rI2JbuM2He6OPyU_N5PyePsd/view).
+
+Тесты проверяют поля объектов, общие счётчики, пустые категории, преобразование
+реального JSON в объекты, повторную загрузку, отсутствующий файл, некорректный JSON
+и запуск проверочного примера. Счётчики изолированы фикстурой между тестами.
