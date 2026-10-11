@@ -40,3 +40,6 @@ ENV/
 # ОС
 .DS_Store
 Thumbs.db
+
+# Локальные отчёты проверок
+reports/
